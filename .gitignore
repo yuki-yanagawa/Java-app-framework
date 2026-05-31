@@ -1,0 +1,11 @@
+.classpath
+.project
+.settings
+.gradle
+bin
+lib
+target
+/build-eclipse/
+classes
+dist
+testreport

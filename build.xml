@@ -1,0 +1,71 @@
+<project name="AppFrameWork" default="compile" basedir=".">
+	<property name="src.dir"></property>
+	<property name="test.dir"></property>
+	<property name="build.main.dir" value="classes/main"></property>
+	<property name="build.test.dir" value="classes/test"></property>
+	<property name="report.dir" value="testreport"/>
+	<property name="dist.dir" value="dist"/>
+
+	<path id="classpath">
+		<pathelement location="${build.main.dir}"/>
+		<pathelement location="${build.test.dir}"/>
+		<fileset dir="lib">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="compile">
+		<echo>-- コンパイルを開始します --</echo>
+		<mkdir dir="${build.main.dir}"/>
+		<mkdir dir="${build.test.dir}"/>
+		<javac srcdir="${src.dir}" destdir="${build.main.dir}" release="8" incluedeantruntime="false" classpathref="classpath"></javac>
+		<javac srcdir="${test.dir}" destdir="${build.test.dir}" release="8" incluedeantruntime="false" classpathref="classpath"></javac>
+		<echo>-- コンパイルが終了しました --</echo>
+	</target>
+
+	<target name="test" depends="compile">
+		<echo>--自動テストを開始します--</echo>
+		<mkdir dir="${report.dir}"/>
+		<junit printsummary="yes" haltonfailure="no" haltonerror="no" failureproperty="test.failed">
+			<classpath refid="classpath"></classpath>
+			<formatter type="xml"/>
+			<batchtest fork="yes" todir="${report.dir}">
+				<fileset dir="${test.dir}">
+					<include name="**/*Test.java"/>
+				</fileset>
+			</batchtest>
+		</junit>
+		<echo>--自動テストが終了しました--</echo>
+
+		<!--　テストレポートを作成する -->
+		<mkdir dir="${report.dir}/html"/>
+		<junitreport todir="${report.dir}">
+			<fileset dir="${report.dir}">
+				<include name="TEST-*.xml"/>
+			</fileset>
+			<report format="frames" todir="${report.dir}/html"/>
+		</junitreport>
+		<fail if="test.failed" message="テストが失敗しためビルドを中断します。" />
+	</target>
+	
+	<target name="build" depends="test">
+		<echo>--アーカイブ処理を開始します--</echo>
+		<mkdir dir="${dist.dir}"/>
+		<jar destfile="${dist.dir}/AppFrameWork.jar" basedir="${build.main.dir}">
+			<manifest>
+				<attribute name="Main-Class" value=""/>
+			</manifest>
+		</jar>
+		<echo>--アーカイブ処理が完了しました--</echo>
+	</target>
+
+	<target name="run">
+		<java jar="${dist.dir}/AppFrameWork.jar" fork="true"/>
+	</target>
+
+	<target name="clean">
+		<delete dir="classes"/>
+		<delete dir="${dist.dir}"/>
+		<delete dir="${report.dir}"/>
+	</target>
+</project>
